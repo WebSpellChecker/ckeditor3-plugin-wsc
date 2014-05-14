@@ -11,8 +11,12 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		errorBoxId = 'cke_error_' + number,
 		interval,
 		protocol = document.location.protocol || 'http:',
-		errorMsg = editor.lang.spellCheck.notAvailable;
-
+		errorMsg = editor.lang.spellCheck.notAvailable,
+		wscSizes = {
+			minWidth : 485,
+			minHeight : 380
+		};
+		
 	var pasteArea = '<textarea'+
 			' style="display: none"' +
 			' id="' + textareaId + '"' +
@@ -40,6 +44,18 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 	if ( editor.config.wsc_customLoaderScript )
 		errorMsg += '<p style="color:#000;font-size:11px;font-weight: normal;text-align:center;padding-top:10px">' +
 			editor.lang.spellCheck.errorLoading.replace( /%s/g, editor.config.wsc_customLoaderScript ) + '</p>';
+
+	if(typeof editor.config.wsc_width != 'number') {
+		editor.config.wsc_width = wscSizes.minWidth;
+	} else {
+		editor.config.wsc_width = Math.max(editor.config.wsc_width, wscSizes.minWidth);
+	}
+
+	if(typeof editor.config.wsc_height != 'number') {
+		editor.config.wsc_height = wscSizes.minHeight;
+	} else {
+		editor.config.wsc_height = Math.max(editor.config.wsc_height, wscSizes.minHeight);
+	}
 
 	function burnSpelling( dialog, errorMsg )
 	{
@@ -133,17 +149,40 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		CKEDITOR.document.getById( iframeId ).setStyle( 'display', 'block' );
 	}
 
+	function setInitialPosition(dialog) {
+		if(!dialog.isShowedOnce) {
+			var newPosition = {
+					left: editor.config.wsc_left,
+					top: editor.config.wsc_top
+				},
+				currentPosition = dialog.getPosition();
+
+			if(typeof newPosition.left != 'number') {
+				newPosition.left = currentPosition.x;
+			}
+			if(typeof newPosition.top != 'number') {
+				newPosition.top = currentPosition.y;
+			}
+
+			dialog.move(newPosition.left, newPosition.top);
+			dialog.isShowedOnce = true;
+		}
+	}
+
 	return {
 		title : editor.config.wsc_dialogTitle || editor.lang.spellCheck.title,
-		minWidth : 485,
-		minHeight : 380,
+		minWidth : wscSizes.minWidth,
+		minHeight : wscSizes.minHeight,
+		width: editor.config.wsc_width,
+		height: editor.config.wsc_height,
 		buttons : [ CKEDITOR.dialog.cancelButton ],
 		onShow : function()
 		{
+
 			var contentArea = this.getContentElement( 'general', 'content' ).getElement();
 			contentArea.setHtml( pasteArea );
 			contentArea.getChild( 2 ).setStyle( 'height', this._.contentSize.height + 'px' );
-			
+
 			if ( checkExistingScript() )
 			{
 				// Load script.
@@ -163,6 +202,8 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			CKEDITOR.document.getById( textareaId ).setValue( sData );
 			
 			interval = window.setInterval( burnSpelling( this, errorMsg ), 250 );
+
+			setInitialPosition(this);
 		},
 		onHide : function()
 		{
