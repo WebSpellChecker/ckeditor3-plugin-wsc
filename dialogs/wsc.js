@@ -12,9 +12,12 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		interval,
 		protocol = document.location.protocol || 'http:',
 		errorMsg = editor.lang.spellCheck.notAvailable,
-		wscSizes = {
+		
+		constraints = {
 			minWidth : 485,
-			minHeight : 380
+			minHeight : 380,
+			maxWidth: 1500,
+			maxHeight: 1500
 		};
 		
 	var pasteArea = '<textarea'+
@@ -44,18 +47,6 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 	if ( editor.config.wsc_customLoaderScript )
 		errorMsg += '<p style="color:#000;font-size:11px;font-weight: normal;text-align:center;padding-top:10px">' +
 			editor.lang.spellCheck.errorLoading.replace( /%s/g, editor.config.wsc_customLoaderScript ) + '</p>';
-
-	if(typeof editor.config.wsc_width != 'number') {
-		editor.config.wsc_width = wscSizes.minWidth;
-	} else {
-		editor.config.wsc_width = Math.max(editor.config.wsc_width, wscSizes.minWidth);
-	}
-
-	if(typeof editor.config.wsc_height != 'number') {
-		editor.config.wsc_height = wscSizes.minHeight;
-	} else {
-		editor.config.wsc_height = Math.max(editor.config.wsc_height, wscSizes.minHeight);
-	}
 
 	function burnSpelling( dialog, errorMsg )
 	{
@@ -149,30 +140,69 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		CKEDITOR.document.getById( iframeId ).setStyle( 'display', 'block' );
 	}
 
-	function setInitialPosition(dialog) {
-		if(!dialog.isShowedOnce) {
-			var newPosition = {
-					left: editor.config.wsc_left,
-					top: editor.config.wsc_top
-				},
-				currentPosition = dialog.getPosition();
+	function initView(dialog) {
+		var newViewSettings = {
+				left: parseInt(editor.config.wsc_left, 10),
+				top: parseInt(editor.config.wsc_top, 10),
+				width: parseInt(editor.config.wsc_width, 10),
+				height: parseInt(editor.config.wsc_height, 10)
+			},
+			viewSize = CKEDITOR.document.getWindow().getViewPaneSize(),
+			currentPosition = dialog.getPosition(),
+			currentSize = dialog.getSize();
 
-			if(typeof newPosition.left != 'number') {
-				newPosition.left = currentPosition.x;
+		if(!dialog._.resized) {
+			var wrapperHeight = currentSize.height - dialog.parts.contents.getSize('height',  !(CKEDITOR.env.gecko || CKEDITOR.env.opera || CKEDITOR.env.ie && CKEDITOR.env.quirks)),
+				wrapperWidth = currentSize.width - dialog.parts.contents.getSize('width', 1);
+
+			if(newViewSettings.width < constraints.minWidth || !newViewSettings.width) {
+				newViewSettings.width = constraints.minWidth;
 			}
-			if(typeof newPosition.top != 'number') {
-				newPosition.top = currentPosition.y;
+			if(newViewSettings.width > viewSize.width - wrapperWidth) {
+				newViewSettings.width = viewSize.width - wrapperWidth;
 			}
 
-			dialog.move(newPosition.left, newPosition.top);
-			dialog.isShowedOnce = true;
+			if(newViewSettings.height < constraints.minHeight || !newViewSettings.height) {
+				newViewSettings.height = constraints.minHeight;
+			}
+			if(newViewSettings.height > viewSize.height - wrapperHeight) {
+				newViewSettings.height = viewSize.height - wrapperHeight;
+			}
+
+			dialog._.fromResizeEvent = false;
+			dialog.resize(newViewSettings.width, newViewSettings.height);
+		}
+
+		if(!dialog._.moved && (!isNaN(newViewSettings.left) || !isNaN(newViewSettings.top))) {
+			dialog._.moved = true;
+			if(!newViewSettings.left) {
+				newViewSettings.left = currentPosition.x;
+			}
+			if(newViewSettings.left < 0) {
+				newViewSettings.left = 0;
+			}
+			if(newViewSettings.left > viewSize.width - currentSize.width) {
+				newViewSettings.left = viewSize.width - currentSize.width;
+			}
+
+			if(!newViewSettings.top) {
+				newViewSettings.top = currentPosition.y;
+			}
+			if(newViewSettings.top < 0) {
+				newViewSettings.top = 0;
+			}
+			if(newViewSettings.top > viewSize.height - currentSize.height) {
+				newViewSettings.top = viewSize.height - currentSize.height;
+			}
+
+			dialog.move(newViewSettings.left, newViewSettings.top);
 		}
 	}
 
 	return {
 		title : editor.config.wsc_dialogTitle || editor.lang.spellCheck.title,
-		minWidth : wscSizes.minWidth,
-		minHeight : wscSizes.minHeight,
+		minWidth : constraints.minWidth,
+		minHeight : constraints.minHeight,
 		width: editor.config.wsc_width,
 		height: editor.config.wsc_height,
 		buttons : [ CKEDITOR.dialog.cancelButton ],
@@ -203,7 +233,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			
 			interval = window.setInterval( burnSpelling( this, errorMsg ), 250 );
 
-			setInitialPosition(this);
+			initView(this);
 		},
 		onHide : function()
 		{
@@ -242,5 +272,11 @@ CKEDITOR.dialog.on( 'resize', function( evt )
 
 		iframe && iframe.setSize( 'height', data.height );
 		iframe && iframe.setSize( 'width', data.width );
+
+		// add flag that indicate whether dialog has been resized by user
+		if(dialog._.fromResizeEvent && !dialog._.resized) {
+			dialog._.resized = true;
+		}
+		dialog._.fromResizeEvent = true;
 	}
 });
