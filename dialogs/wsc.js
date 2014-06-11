@@ -12,7 +12,6 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		interval,
 		protocol = document.location.protocol || 'http:',
 		errorMsg = editor.lang.spellCheck.notAvailable,
-		
 		constraints = {
 			minWidth : 485,
 			minHeight : 380,
