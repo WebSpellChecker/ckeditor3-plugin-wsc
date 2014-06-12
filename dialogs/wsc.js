@@ -14,9 +14,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		errorMsg = editor.lang.spellCheck.notAvailable,
 		constraints = {
 			minWidth : 485,
-			minHeight : 380,
-			maxWidth: 1500,
-			maxHeight: 1500
+			minHeight : 380
 		};
 		
 	var pasteArea = '<textarea'+
