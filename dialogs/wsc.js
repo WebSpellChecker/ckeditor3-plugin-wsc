@@ -154,27 +154,29 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			var wrapperHeight = currentSize.height - dialog.parts.contents.getSize('height',  !(CKEDITOR.env.gecko || CKEDITOR.env.opera || CKEDITOR.env.ie && CKEDITOR.env.quirks)),
 				wrapperWidth = currentSize.width - dialog.parts.contents.getSize('width', 1);
 
-			if(newViewSettings.width < constraints.minWidth || !newViewSettings.width) {
+			if(newViewSettings.width < constraints.minWidth || isNaN(newViewSettings.width)) {
 				newViewSettings.width = constraints.minWidth;
 			}
 			if(newViewSettings.width > viewSize.width - wrapperWidth) {
 				newViewSettings.width = viewSize.width - wrapperWidth;
 			}
 
-			if(newViewSettings.height < constraints.minHeight || !newViewSettings.height) {
+			if(newViewSettings.height < constraints.minHeight || isNaN(newViewSettings.height)) {
 				newViewSettings.height = constraints.minHeight;
 			}
 			if(newViewSettings.height > viewSize.height - wrapperHeight) {
 				newViewSettings.height = viewSize.height - wrapperHeight;
 			}
 
+			currentSize.width = newViewSettings.width + wrapperWidth;
+			currentSize.height = newViewSettings.height + wrapperHeight;
+
 			dialog._.fromResizeEvent = false;
 			dialog.resize(newViewSettings.width, newViewSettings.height);
 		}
 
 		if(!dialog._.moved && (!isNaN(newViewSettings.left) || !isNaN(newViewSettings.top))) {
-			dialog._.moved = true;
-			if(!newViewSettings.left) {
+			if(isNaN(newViewSettings.left)) {
 				newViewSettings.left = currentPosition.x;
 			}
 			if(newViewSettings.left < 0) {
@@ -184,7 +186,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 				newViewSettings.left = viewSize.width - currentSize.width;
 			}
 
-			if(!newViewSettings.top) {
+			if(isNaN(newViewSettings.top)) {
 				newViewSettings.top = currentPosition.y;
 			}
 			if(newViewSettings.top < 0) {
@@ -194,7 +196,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 				newViewSettings.top = viewSize.height - currentSize.height;
 			}
 
-			dialog.move(newViewSettings.left, newViewSettings.top);
+			dialog.move(newViewSettings.left, newViewSettings.top, 1);
 		}
 	}
 
@@ -202,8 +204,6 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		title : editor.config.wsc_dialogTitle || editor.lang.spellCheck.title,
 		minWidth : constraints.minWidth,
 		minHeight : constraints.minHeight,
-		width: editor.config.wsc_width,
-		height: editor.config.wsc_height,
 		buttons : [ CKEDITOR.dialog.cancelButton ],
 		onShow : function()
 		{
