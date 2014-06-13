@@ -146,7 +146,8 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			},
 			viewSize = CKEDITOR.document.getWindow().getViewPaneSize(),
 			currentPosition = dialog.getPosition(),
-			currentSize = dialog.getSize();
+			currentSize = dialog.getSize(),
+			savePosition = 0;
 
 		if(!dialog._.resized) {
 			var wrapperHeight = currentSize.height - dialog.parts.contents.getSize('height',  !(CKEDITOR.env.gecko || CKEDITOR.env.opera || CKEDITOR.env.ie && CKEDITOR.env.quirks)),
@@ -173,9 +174,11 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			dialog.resize(newViewSettings.width, newViewSettings.height);
 		}
 
-		if(!dialog._.moved && (!isNaN(newViewSettings.left) || !isNaN(newViewSettings.top))) {
+		if(!dialog._.moved) {
+			savePosition = isNaN(newViewSettings.left) && isNaN(newViewSettings.top) ? 0 : 1;
+
 			if(isNaN(newViewSettings.left)) {
-				newViewSettings.left = currentPosition.x;
+				newViewSettings.left = (viewSize.width - currentSize.width) / 2;
 			}
 			if(newViewSettings.left < 0) {
 				newViewSettings.left = 0;
@@ -185,7 +188,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			}
 
 			if(isNaN(newViewSettings.top)) {
-				newViewSettings.top = currentPosition.y;
+				newViewSettings.top = (viewSize.height - currentSize.height) / 2;
 			}
 			if(newViewSettings.top < 0) {
 				newViewSettings.top = 0;
@@ -194,7 +197,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 				newViewSettings.top = viewSize.height - currentSize.height;
 			}
 
-			dialog.move(newViewSettings.left, newViewSettings.top, 1);
+			dialog.move(newViewSettings.left, newViewSettings.top, savePosition);
 		}
 	}
 
