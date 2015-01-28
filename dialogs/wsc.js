@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 
@@ -16,7 +16,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			minWidth : 485,
 			minHeight : 380
 		};
-		
+
 	var pasteArea = '<textarea'+
 			' style="display: none"' +
 			' id="' + textareaId + '"' +
@@ -73,19 +73,6 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			errorBox.setHtml( m || editor.lang.spellCheck.notAvailable );
 		}
 	};
-
-	var checkExistingScript = function(){
-		var doc = CKEDITOR.document;
-		var scripts = doc.getElementsByTag("script");
-		for(var i = 0; i < scripts.count(); i++){
-			if(scripts.$[i].src == wscCoreUrl){
-				return false;
-			}
-		}
-		return true;
-	};
-
-
 
 	function initAndSpell( dialog )
 	{
@@ -213,24 +200,11 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			contentArea.setHtml( pasteArea );
 			contentArea.getChild( 2 ).setStyle( 'height', this._.contentSize.height + 'px' );
 
-			if ( checkExistingScript() )
-			{
-				// Load script.
-				CKEDITOR.document.getHead().append(
-					CKEDITOR.document.createElement( 'script',
-						{
-							attributes :
-								{
-									type : 'text/javascript',
-									src : wscCoreUrl
-								}
-						})
-				);
-			}
+			CKEDITOR.scriptLoader.load(wscCoreUrl);
 
 			var sData = editor.getData();											// Get the data to be checked.
 			CKEDITOR.document.getById( textareaId ).setValue( sData );
-			
+
 			interval = window.setInterval( burnSpelling( this, errorMsg ), 250 );
 
 			initView(this);
