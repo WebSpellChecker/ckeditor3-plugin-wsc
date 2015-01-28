@@ -23,6 +23,73 @@ function doLoadScript( url )
 }
 
 var opener;
+
+// Constructor Manager PostMessage
+var ManagerPostMessage = function() {
+	var _init = function(handler) {
+		if (document.addEventListener) {
+			window.addEventListener('message', handler, false);
+		} else {
+			window.attachEvent("onmessage", handler);
+		};
+	};
+	var _sendCmd = function(o) {
+		var str,
+			type = Object.prototype.toString,
+			objObject = "[object Object]";
+			fn = o.fn || null;
+			id = o.id || '';
+			target = o.target || window;
+			message = o.message || { 'id': id };
+
+		if (o.message && type.call(o.message) == objObject) {
+			(o.message.id) ? o.message.id : o.message.id = id;
+			message = o.message;
+		};
+
+		str = JSON.stringify(message, fn);
+		target.postMessage(str, '*');
+	};
+
+	return {
+		init: _init,
+		send: _sendCmd
+	};
+};
+var tools = {
+	hash: {
+		create: function(o, fn) {
+			fn = fn || null;
+			var str = JSON.stringify(o, fn);
+			return str;
+		},
+		parse: function(str, fn) {
+			fn = fn || null;
+			return JSON.parse(str, fn);
+		}
+	}
+};
+
+var manageMessage = new ManagerPostMessage();
+var manageGlobalIncomingData = {
+	syncUDActions: function(response) {
+		var scayt = opener.scayt;
+
+		if(typeof scayt != 'undefined' && scayt.wscUdToScayt) {
+			scayt.wscUdToScayt(response.udAction, response.data);
+		}
+	}
+};
+
+manageMessage.init(function(event) {
+	event = event || window.event;
+	var response = tools.hash.parse(event.data);
+
+	if(response && response.id && manageGlobalIncomingData[response.id]) {
+		manageGlobalIncomingData[response.id](response);
+	}
+});
+
 function tryLoad()
 {
 	opener = window.parent;
