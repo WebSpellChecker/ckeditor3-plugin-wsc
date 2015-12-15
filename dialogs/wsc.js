@@ -110,9 +110,6 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 			framesetPath : framesetPath,
 			iframePath : pluginPath + 'ciframe.html',
 
-			// Styles defining.
-			schemaURI : pluginPath + 'wsc.css',
-
 			userDictionaryName: editor.config.wsc_userDictionaryName,
 			customDictionaryName: editor.config.wsc_customDictionaryIds && editor.config.wsc_customDictionaryIds.split(","),
 			domainName: editor.config.wsc_domainName
