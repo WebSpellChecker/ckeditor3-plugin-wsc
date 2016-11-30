@@ -35,7 +35,7 @@ CKEDITOR.dialog.add( 'checkspell', function( editor )
 		'</iframe>';
 
 	var wscCoreUrl = editor.config.wsc_customLoaderScript || ( protocol +
-			'//loader.webspellchecker.net/sproxy_fck/sproxy.php'
+			'//www.webspellchecker.net/spellcheck3/script/ssrv.cgi'
 			+ '?plugin=fck2'
 			+ '&customerid=' + editor.config.wsc_customerId
 			+ '&cmd=script&doc=wsc&schema=22'
